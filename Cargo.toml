@@ -1,0 +1,8 @@
+[package]
+name = "yambar-temperature"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+clap = "4.4.12"
+sensors = "0.2.2"
