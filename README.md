@@ -14,7 +14,7 @@ cargo build --release
 Then install it:
 
 ```bash
-sudo cp target/release/yambar-temperature /usr/bin/
+sudo cp target/release/yambar-temperature /usr/local/bin/
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ bar:
 
   left:
     - script:
-        path: /usr/bin/yambar-temperature
+        path: /usr/local/bin/yambar-temperature
         args: [--poll-interval, 2000, --names, coretemp-isa-0000]
         content:
           - string:
