@@ -22,7 +22,7 @@ fn main() {
     };
 
     loop {
-        let temperature: Option<f64> = match get_average_temperature(args.names.clone()) {
+        let temperature: Option<f64> = match get_average_temperature(&args.names) {
             Some(temperature) => match args.unit {
                 TemperatureUnit::Celsius => Some(temperature),
                 TemperatureUnit::Fahrenheit => Some(celsius_to_fahrenheit(temperature)),
@@ -113,19 +113,21 @@ fn filter_subfeatures(subfeature: &sensors::Subfeature) -> bool {
     *subfeature.subfeature_type() == sensors::SubfeatureType::SENSORS_SUBFEATURE_TEMP_INPUT
 }
 
-fn get_average_temperature(filter_names: Option<Vec<String>>) -> Option<f64> {
-    let chips = sensors::Sensors::new().into_iter();
-    let sensors = chips.filter(|chip| filter_chips(chip, &filter_names));
-    let features = sensors.flat_map(|chip| chip.into_iter());
-    let temp_features = features.filter(filter_features);
-    let subfeatures = temp_features.flat_map(|feature| feature.into_iter());
-    let temp_subfeatures = subfeatures.filter(filter_subfeatures);
-    let temp_values = temp_subfeatures.filter_map(|subfeature| subfeature.get_value().ok());
-    let temperatures = temp_values.collect::<Vec<_>>();
+fn get_average_temperature(filter_names: &Option<Vec<String>>) -> Option<f64> {
+   let (sum, count) = sensors::Sensors::new()
+        .into_iter()
+        .filter(|chip| filter_chips(chip, filter_names))
+        .flat_map(|chip| chip.into_iter())
+        .filter(filter_features)
+        .flat_map(|feature| feature.into_iter())
+        .filter(filter_subfeatures)
+        .filter_map(|subfeature| subfeature.get_value().ok())
+        .fold((0.0, 0usize), |(sum, count), v| (sum + v, count + 1));
 
-    match temperatures.len() {
-        0 => None,
-        _ => Some(temperatures.iter().sum::<f64>() / temperatures.len() as f64),
+    if count == 0 {
+        None
+    } else {
+        Some(sum / count as f64)
     }
 }
 
